@@ -1,0 +1,62 @@
+Overview:
+
+RDBMfs is a tool to manage/develop with your database using standard shell tools, and scripts
+
+mount a database on a directory and you will be presented with a directory structure similar to:
+
+
+[mount point]
+|
+|--[DatabaseSchema1]
+|  |
+|  |--[Table1]
+|  |  |
+|  |  |-[data]
+|  |  |-define
+|  |  
+|  |--[TableN]
+|  |  |
+|  |  |-[data] < "Directory with real data, 1 file per row"
+|  |  |-define < "Create Table statement"
+|  .
+|  .
+|  .
+|
+|--[DatabaseSchemaN]
+
+
+
+Features:
+
+RDBMfs can read, update, insert rows in tables
+can create new tables, and populate new data in them
+
+TODO:
+
+Find a scheme to map database permissions to posix fs permissions
+
+
+INSTALLATION:
+Dependencies:
+
+python-fuse
+python-sqlalchemy
+python-mysql
+
+
+
+Usage:
+
+./rdbmfs ./mount_point <options>
+
+cd ./mount_point
+
+cd fusetest
+
+cat ./*/define
+
+cd Person
+
+touch Person#_611
+
+echo "611, wee, weewe, wewe, wee, , , , , , " >> Person#_611
