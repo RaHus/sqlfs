@@ -3,7 +3,7 @@ from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.schema import CreateTable
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import update, insert
-
+from sqlalchemy.exc import IntegrityError
 from util import *
 
 from time import time
@@ -159,43 +159,55 @@ class CsvBackend(Backend):
         return a[offset:offset+length]
 
     def write(self,path,buf,offset):
-        print '*** write', path#, buf, offset
+        print '*** write', path, buf, offset
 
-        #if not self.layout(path):
-        #    return -errno.ENOSYS #Error Not Found
+        if not self.layout(path):
+            return -errno.ENOSYS #Error Not Found
 
+        if getDepth(path) >= 2:
+            pe = getParts(path)
+        else:
+            return -errno.ENOSYS
+
+        if getDepth(path) == 4 and ( pe[-2] == 'data' ):   
+            table = Table(pe[-3], self.meta, schema=pe[-4], autoload=True)
+            if isinstance(buf, int):
+                print "buff is int"
+                return buf
+            
+            values = str(buf).split(',')
+            a=pe[-1].split('#_')
+            dv=dict(zip(table.columns.keys(), values))
+            #try:
+            ret = self.engine.execute(update(table,values=dv, whereclause=table.c[str(a[0])]==a[1]) )
+            #except IntegrityError:
+            #    ret = self.engine.execute(insert(table,values=dv) )
+        elif getDepth(path) == 3 and ( pe[-1] == 'define' ):
+            pass#table = Table(pe[-2], self.meta, schema=pe[-3], autoload=True)
+            #a = str(CreateTable(table).compile(self.engine))
+        return len(str(buf))
+
+    def mknod ( self, path, mode, dev ):
+        print '*** mknod', path, oct(mode), dev
+        if not self.layout(path):
+            return -errno.ENOENT 
+        
         if getDepth(path) >= 2:
             pe = getParts(path)
         else:
             return -errno.ENOSYS 
         
-        if getDepth(path) == 4 and ( pe[-2] == 'data' ):   
-            table = Table(pe[-3], self.meta, schema=pe[-4], autoload=True)
-            values = buf.split(',')
+        if getDepth(path) == 4 and ( pe[-2] == 'data' ):
             a=pe[-1].split('#_')
-            dv=dict(zip(table.columns.keys(), values))
-            ret = self.engine.execute(update(table,values=dv, whereclause=table.c[str(a[0])]==a[1]) )
-            if ret:
-                ret = self.engine.execute(insert(table,values=dv) )
-        elif getDepth(path) == 3 and ( pe[-1] == 'define' ):
-            pass#table = Table(pe[-2], self.meta, schema=pe[-3], autoload=True)
-            #a = str(CreateTable(table).compile(self.engine))
-        return len(buf)
-
-    def mknod ( self, path, mode, dev ):
-        print '*** mknod', path, oct(mode), dev
-#        if getDepth(path) >= 2:
-#            pe = getParts(path)
-#        else:
-#            return -errno.ENOSYS 
-#        
-#        if getDepth(path) == 4 and ( pe[-2] == 'data' ):   
-#            table = Table(pe[-3], self.meta, schema=pe[-4], autoload=True)
-#            if pe[-1].contains('#_'):
-#            values = ["" for e in table.columns.keys()]
-#            dv=dict(zip(table.columns.keys(), values))
-#            #dbg()
-#            ret = self.engine.execute(insert(table,values=dv, whereclause=table.c[str(a[0])]==a[1]) )            
+            table = Table(pe[-3], self.meta, schema=pe[-4], autoload=True)
+            print a, pe[-1].split('#_')[0] ," == ", table.columns.keys()[0]
+            if pe[-1].split('#_')[0] == table.columns.keys()[0]:
+                values = [a[1]]
+                values.extend(["" for e in table.columns.keys() if e != a[0]])
+                dv=dict(zip(table.columns.keys(), values))
+                #dbg()
+                self.engine.execute(insert(table,values=dv, whereclause=table.c[str(a[0])]==a[1]) )
+        return 0            
                     
 
     def readdir(self,path,offset):
