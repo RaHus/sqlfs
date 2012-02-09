@@ -1,10 +1,11 @@
-from IPython.Shell import IPShellEmbed
-args = ['-pdb', '-pi1', 'In <\\#>: ', '-pi2', '   .\\D.: ',
-    '-po', 'Out<\\#>: ', '-nosep']
-dbg = IPShellEmbed(args,
-    banner = 'Entering IPython.  Press Ctrl-D to exit.',
-    exit_msg = 'Leaving Interpreter, back to Pylons.')
-
+#from IPython.Shell import IPShellEmbed
+#args = ['-pdb', '-pi1', 'In <\\#>: ', '-pi2', '   .\\D.: ',
+#    '-po', 'Out<\\#>: ', '-nosep']
+#dbg = IPShellEmbed(args,
+#    banner = 'Entering IPython.  Press Ctrl-D to exit.',
+#    exit_msg = 'Leaving Interpreter, back to Pylons.')
+def dbg(*args,**kwargs):
+    pass
 
 def dirFromList(list):
     """

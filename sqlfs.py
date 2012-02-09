@@ -1,4 +1,4 @@
-#!bin/python
+#!/usr/bin/env python
 
 from fuse import Fuse
 import fuse 

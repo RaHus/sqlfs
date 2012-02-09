@@ -1,4 +1,4 @@
-#!bin/python
+#!/usr/bin/env python
 
 from fuse import Fuse
 import fuse 
@@ -106,8 +106,7 @@ class SQLFS(Fuse):
         return -errno.ENOSYS
 
     def mknod ( self, path, mode, dev ):
-        print '*** mknod', path, oct(mode), dev
-        return -errno.ENOSYS
+        return self.backend.mknod(path,mode,dev)
 
     def open ( self, path, flags ):
         print '*** open', path, flags
